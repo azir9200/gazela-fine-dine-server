@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 const app = express();
 const port = process.env.PORT || 5000;
@@ -10,8 +10,7 @@ app.use('/', cors());
 app.use(express.json());
 
 
-console.log(process.env.DB_USER)
-console.log(process.env.DB_PASS)
+
 
 // from mongodb atlas
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.xq1u8gq.mongodb.net/?retryWrites=true&w=majority`;
@@ -47,19 +46,36 @@ async function run() {
       res.send(result);
     })
 
-    //collect dishes by category name
-    app.get('/allDishes/:(_id)', async (req, res) => {
+    //get single dishes by ID
+    app.get('/allDishes/:id', async (req, res) => {
       const id = req.params.id;
-      const query = { _id: new ObjectId(_id) }
+      const query = { _id: new ObjectId(id) }
 
-      const options = {
-        projection: { title: 1, foodName: 1, price: 1, foodCategory: 1, image: 1 },
-      };
+      const result = await allDishesCollection.findOne(query);
 
-      const result = await allDishesCollection.findOne(query, options);
       res.send(result);
     })
 
+    //top selling dishes
+
+    app.get('/getTopItem', async (req, res) => {
+      const result = await allDishesCollection.find({}).toArray();
+      result.sort((a, b) => b.sale - a.sale);
+      const top6 = result.slice(0, 6);
+      res.send(top6)
+
+    })
+
+    app.get('/mealSale', async (req, res) => {
+      const id = req.query.id;
+      const filter = { _id: new ObjectId(id) }
+      const currentSale = await allDishesCollection.findOne(filter)
+      const newSale = parseInt(currentSale.sale) + 1;
+      const update = { $set: { sale: newSale } }
+      const result = await allDishesCollection.updateOne(filter, update)
+      console.log(newSale);
+      console.log(result);
+    })
 
 
     // Send a ping to confirm a successful connection
