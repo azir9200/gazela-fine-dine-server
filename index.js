@@ -31,6 +31,7 @@ async function run() {
 
     const mainMenuCollection = client.db('gazelaFineDine').collection('mainmenu');
     const allDishesCollection = client.db('gazelaFineDine').collection('allDishes');
+    const orderCollection = client.db('gazelaFineDine').collection('mealOrder');
 
 
     app.get('/mainmenu', async (req, res) => {
@@ -50,9 +51,7 @@ async function run() {
     app.get('/allDishes/:id', async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) }
-
       const result = await allDishesCollection.findOne(query);
-
       res.send(result);
     })
 
@@ -65,7 +64,7 @@ async function run() {
       res.send(top6)
 
     })
-
+    // meal count in mongodb
     app.get('/mealSale', async (req, res) => {
       const id = req.query.id;
       const filter = { _id: new ObjectId(id) }
@@ -73,8 +72,25 @@ async function run() {
       const newSale = parseInt(currentSale.sale) + 1;
       const update = { $set: { sale: newSale } }
       const result = await allDishesCollection.updateOne(filter, update)
-      console.log(newSale);
-      console.log(result);
+
+    })
+
+    //get data for order food
+    app.post('/mealOrder', async (req, res) => {
+      const mealOrder = req.body;
+      console.log(mealOrder);
+      const result = await orderCollection.insertOne(mealOrder);
+      res.send(result);
+    })
+
+    // collect alredy ordered data
+    app.get('/mealOrder', async (req, res) => {
+      let query = {};
+      if (req.query?.email) {
+        query = { email: req.query.email }
+      }
+      const result = await orderCollection.find().toArray();
+      res.send(result);
     })
 
 
