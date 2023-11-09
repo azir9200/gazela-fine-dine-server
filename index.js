@@ -27,11 +27,12 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     const mainMenuCollection = client.db('gazelaFineDine').collection('mainmenu');
     const allDishesCollection = client.db('gazelaFineDine').collection('allDishes');
     const orderCollection = client.db('gazelaFineDine').collection('mealOrder');
+    const userCollection = client.db('gazelaFineDine').collection('foodUsers');
 
 
     app.get('/mainmenu', async (req, res) => {
@@ -73,15 +74,16 @@ async function run() {
       const update = { $set: { sale: newSale } }
       const result = await allDishesCollection.updateOne(filter, update)
 
-    })
+    }),
 
-    //get data for order food
-    app.post('/mealOrder', async (req, res) => {
-      const mealOrder = req.body;
-      console.log(mealOrder);
-      const result = await orderCollection.insertOne(mealOrder);
-      res.send(result);
-    })
+
+      //get data for order food
+      app.post('/mealOrder', async (req, res) => {
+        const mealOrder = req.body;
+        console.log(mealOrder);
+        const result = await orderCollection.insertOne(mealOrder);
+        res.send(result);
+      })
 
     // collect alredy ordered data
     app.get('/mealOrder', async (req, res) => {
@@ -92,6 +94,14 @@ async function run() {
       const result = await orderCollection.find().toArray();
       res.send(result);
     })
+
+    //create user
+    app.post('foodUsers', async (req, res) => {
+      const user = req.body;
+      console.log('my user', foodUsers);
+      const result = await userCollection.insertOne(user);
+      res.send(result);
+    });
 
 
     // Send a ping to confirm a successful connection
